@@ -6,7 +6,7 @@ from config import DevelopmentConfig as settings
 
 engine = create_engine(
     settings.DATABASE_URL,
-    echo=True,
+    echo=False,
     pool_pre_ping=True,
 )
 

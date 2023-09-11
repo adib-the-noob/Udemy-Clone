@@ -1,8 +1,7 @@
-from sqlalchemy import Column, Integer, String, Boolean
-from sqlalchemy.ext.declarative import declarative_base
-
-Base = declarative_base()
-
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+from db import Base  
 
 class User(Base):
     __tablename__ = "users"
@@ -11,7 +10,22 @@ class User(Base):
     username = Column(String, unique=True)
     full_name = Column(String)
     email = Column(String, unique=True, index=True)
-    phone_number = Column(String, unique=True, index=True)
     hashed_password = Column(String)
     is_active = Column(Boolean, default=True)
     is_superuser = Column(Boolean, default=False)
+
+    profile = relationship("Profile", back_populates="user")
+
+class Profile(Base):
+    __tablename__ = "profiles"
+
+    id = Column(Integer, primary_key=True, index=True)
+    
+    user_id = Column(Integer, ForeignKey("users.id"))
+    user = relationship("User", back_populates="profile")
+    
+    address = Column(String)
+    phone_number = Column(String)
+    
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
