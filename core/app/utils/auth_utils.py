@@ -1,4 +1,6 @@
-from fastapi import HTTPException, status
+from typing import Annotated
+from fastapi import HTTPException, status, Depends
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
@@ -10,7 +12,7 @@ from db import db_dependency
 from models.user_model import User
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
+oauth_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
@@ -19,19 +21,19 @@ def hash_password(password: str) -> str:
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
+def get_user(email : str, db: db_dependency):
+    user = db.query(User).filter(User.email == email).first()
+    return user
 
 def authenticate_user(
-    username: str | None, email: str | None, password: str, db: db_dependency
-) -> bool:
-    user = db.query(User).filter(User.username == username).first()
-    if not user:
-        user = db.query(User).filter(User.email == email).first()
+    email: str | None, password: str, db: db_dependency
+) -> dict:
+    user = get_user(email, db)
     if not user:
         return False
     if not verify_password(password, user.hashed_password):
         return False
     return user
-
 
 def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
     to_encode = data.copy()
@@ -43,7 +45,7 @@ def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
         )
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(
-        to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
+        to_encode, settings.SECRET_KEY, algorithm=settings.AlGORITHM
     )
     return encoded_jwt
 
@@ -66,3 +68,27 @@ def create_user(email: str, password: str, full_name: str, db: db_dependency):
         db.commit()
         db.refresh(user)
         return user
+
+
+def get_current_user(
+        token : Annotated[str, Depends(oauth_scheme)],
+        db: db_dependency
+        ):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="User not authenticated",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[settings.AlGORITHM]
+        )
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+    user = db.query(User).filter(User.email == email).first()
+    if user is None:
+        raise credentials_exception
+    return user
