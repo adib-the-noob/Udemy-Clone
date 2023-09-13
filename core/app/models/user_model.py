@@ -1,3 +1,4 @@
+import random
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -15,6 +16,10 @@ class User(Base):
     is_superuser = Column(Boolean, default=False)
 
     profile = relationship("Profile", back_populates="user")
+
+    def set_username(self):
+        self.username = self.full_name.lower().replace(" ", "_") + str(random.randint(100, 999))
+
 
 class Profile(Base):
     __tablename__ = "profiles"
