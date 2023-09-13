@@ -14,14 +14,17 @@ from utils.auth_utils import (
 )
 
 from db import db_dependency
+
 from schemas.auth_schemas import Token, UserRequest, UserResponse
-from models.user_model import User
+from schemas import profile_schemas
+from models.user_model import User, Profile
 
 router = APIRouter(
     prefix="/auth",
     tags=["auth"],
 )
 
+current_user = Annotated[User, Depends(get_current_user)]
 
 @router.post("/create-user", response_model=Token, status_code=status.HTTP_201_CREATED)
 async def register(user: UserRequest, db: db_dependency):
@@ -80,3 +83,19 @@ async def read_users_me(
             "email" : current_user.email,
         }
     })
+
+@router.post("/create-profile", response_model=profile_schemas.ProfileResponse)
+def create_profile(
+    user: current_user,
+    profile : profile_schemas.ProfileRequest,
+    db: db_dependency
+):
+    profile = Profile(
+        user_id=user.id,
+        address=profile.address,
+        phone_number=profile.phone_number,
+    )
+    db.add(profile)
+    db.commit()
+    db.refresh(profile)
+    return profile
