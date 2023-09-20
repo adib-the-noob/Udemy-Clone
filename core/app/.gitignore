@@ -4,3 +4,7 @@ venv/
 
 __pycache__/
 *.py[cod]
+
+# all medias
+media/profile_pictures/*
+*.db

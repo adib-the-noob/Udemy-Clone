@@ -1,10 +1,12 @@
 from typing import Annotated
-
-from fastapi import APIRouter, Depends, HTTPException, status
+import os
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import JSONResponse
 
 from jose import jwt, JWTError
+from config import settings
+
 
 from utils.auth_utils import (
     authenticate_user,
@@ -87,15 +89,35 @@ async def read_users_me(
 @router.post("/create-profile", response_model=profile_schemas.ProfileResponse)
 def create_profile(
     user: current_user,
-    profile : profile_schemas.ProfileRequest,
-    db: db_dependency
+    db : db_dependency,
+    # profile : profile_schemas.ProfileRequest,
+    address: str = Form(...),
+    phone_number: str = Form(...),
+    profile_picture: UploadFile = File(...)
 ):
+    if profile_picture is not None:
+        if not os.path.exists("media/profile_pictures"):
+            os.makedirs("media/profile_pictures")
+        # create a media folder in the root directory
+        with open(f"media/profile_pictures/{profile_picture.filename}", "wb") as buffer:
+            buffer.write(profile_picture.file.read())
+            file_path = f"{settings.BASE_URL}/media/profile_pictures/{profile_picture.filename}"
+
     profile = Profile(
         user_id=user.id,
-        address=profile.address,
-        phone_number=profile.phone_number,
+        address=address,
+        phone_number=phone_number,
+        profile_picture=profile_picture.filename
     )
     db.add(profile)
     db.commit()
     db.refresh(profile)
-    return profile
+    return JSONResponse({
+        "data" : {
+            "id" : profile.id,
+            "user_id" : profile.user_id,
+            "address" : profile.address,
+            "phone_number" : profile.phone_number,
+            "profile_picture" : file_path,
+        }
+    })

@@ -3,6 +3,7 @@ from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from db import Base  
+from config import settings
 
 class User(Base):
     __tablename__ = "users"
@@ -31,6 +32,8 @@ class Profile(Base):
     
     address = Column(String)
     phone_number = Column(String)
-    
+    profile_picture = Column(String)
+
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+
