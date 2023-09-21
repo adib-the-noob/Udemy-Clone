@@ -9,6 +9,9 @@ class UserRequest(BaseModel):
     email: str
     password: str
     full_name: str
+    phone_number: str
+
+
 
 class UserResponse(BaseModel):
     id : int

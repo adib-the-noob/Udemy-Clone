@@ -30,7 +30,13 @@ current_user = Annotated[User, Depends(get_current_user)]
 
 @router.post("/create-user", response_model=Token, status_code=status.HTTP_201_CREATED)
 async def register(user: UserRequest, db: db_dependency):
-    user = create_user(user.email, user.password, user.full_name, db)
+    user = create_user(
+        email=user.email,
+        password=user.password,
+        phone_number=user.phone_number,
+        full_name=user.full_name,
+        db=db,
+    )
     token = create_access_token(
         data={"sub": user.email, "id": user.id}
     )
@@ -83,41 +89,6 @@ async def read_users_me(
             "id" : current_user.id,
             "username" : current_user.username,
             "email" : current_user.email,
-        }
-    })
-
-@router.post("/create-profile", response_model=profile_schemas.ProfileResponse)
-def create_profile(
-    user: current_user,
-    db : db_dependency,
-    # profile : profile_schemas.ProfileRequest,
-    address: str = Form(...),
-    phone_number: str = Form(...),
-    profile_picture: UploadFile = File(...)
-):
-    if profile_picture is not None:
-        if not os.path.exists("media/profile_pictures"):
-            os.makedirs("media/profile_pictures")
-        # create a media folder in the root directory
-        with open(f"media/profile_pictures/{profile_picture.filename}", "wb") as buffer:
-            buffer.write(profile_picture.file.read())
-            file_path = f"{settings.BASE_URL}/media/profile_pictures/{profile_picture.filename}"
-
-    profile = Profile(
-        user_id=user.id,
-        address=address,
-        phone_number=phone_number,
-        profile_picture=profile_picture.filename
-    )
-    db.add(profile)
-    db.commit()
-    db.refresh(profile)
-    return JSONResponse({
-        "data" : {
-            "id" : profile.id,
-            "user_id" : profile.user_id,
-            "address" : profile.address,
-            "phone_number" : profile.phone_number,
-            "profile_picture" : file_path,
+            "phone_number" : current_user.phone_number,
         }
     })

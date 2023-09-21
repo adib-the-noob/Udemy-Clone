@@ -12,6 +12,7 @@ class User(Base):
     username = Column(String, unique=True)
     full_name = Column(String)
     email = Column(String, unique=True, index=True)
+    phone_number = Column(String)
     hashed_password = Column(String)
     is_active = Column(Boolean, default=True)
     is_superuser = Column(Boolean, default=False)
@@ -30,10 +31,20 @@ class Profile(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
     user = relationship("User", back_populates="profile")
     
+    role = Column(String, default="student")
     address = Column(String)
-    phone_number = Column(String)
     profile_picture = Column(String)
 
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
 
+    def save(self, db):
+        db.add(self)
+        db.commit()
+        db.refresh(self)
+        return self
+    
+    # make a property to return the profile picture url
+
+    def profile_picture_url(self) -> str | None:
+        return f"{settings.BASE_URL}/media/profile_pictures/{self.profile_picture}" if self.profile_picture else None

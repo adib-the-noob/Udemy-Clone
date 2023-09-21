@@ -14,6 +14,7 @@ from models.user_model import User
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
+
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
 
@@ -21,19 +22,20 @@ def hash_password(password: str) -> str:
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
-def get_user(email : str, db: db_dependency):
+
+def get_user(email: str, db: db_dependency):
     user = db.query(User).filter(User.email == email).first()
     return user
 
-def authenticate_user(
-    email: str | None, password: str, db: db_dependency
-) -> dict:
+
+def authenticate_user(email: str | None, password: str, db: db_dependency) -> dict:
     user = get_user(email, db)
     if not user:
         return False
     if not verify_password(password, user.hashed_password):
         return False
     return user
+
 
 def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
     to_encode = data.copy()
@@ -50,7 +52,9 @@ def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
     return encoded_jwt
 
 
-def create_user(email: str, password: str, full_name: str, db: db_dependency):
+def create_user(
+    email: str, password: str, phone_number: str, full_name: str, db: db_dependency
+):
     if email is not None:
         user = db.query(User).filter(User.email == email).first()
         if user:
@@ -62,6 +66,7 @@ def create_user(email: str, password: str, full_name: str, db: db_dependency):
             email=email,
             hashed_password=hash_password(password),
             full_name=full_name,
+            phone_number=phone_number,
         )
         user.set_username()
         db.add(user)
@@ -70,10 +75,7 @@ def create_user(email: str, password: str, full_name: str, db: db_dependency):
         return user
 
 
-def get_current_user(
-        token : Annotated[str, Depends(oauth_scheme)],
-        db: db_dependency
-        ):
+def get_current_user(token: Annotated[str, Depends(oauth_scheme)], db: db_dependency):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="User not authenticated",
