@@ -12,7 +12,10 @@ from utils.auth_utils import (
 )
 
 from db import db_dependency
-
+from models import (
+    profile_models,
+    user_models
+)
 from schemas import profile_schemas
 from models.user_models import User
 from models.profile_models import Profile
@@ -85,6 +88,27 @@ def get_profile(user: current_user, db: db_dependency):
                 "address": profile.address,
                 "role": profile.role,
                 "profile_picture": profile.profile_picture_url(),
+            }
+        },
+        status_code=status.HTTP_200_OK,
+    )
+
+@router.get("/create-edu", response_model=None)
+def create_education(
+    user: current_user,
+    db: db_dependency,
+):
+    profile_models.Education(
+        user_id=user.id,
+        institution_name="Universitas Indonesia",
+        degree="Sarjana",
+        starting_date="2017-09-01:00:00:00",
+        ending_date="2021-09-01:00:00:00",
+    ).save(db)
+    return JSONResponse(
+        {
+            "data": {
+                "message": "Education created successfully",
             }
         },
         status_code=status.HTTP_200_OK,

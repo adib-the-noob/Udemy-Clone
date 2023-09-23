@@ -19,6 +19,8 @@ class User(Base, BaseModelMixin):
     is_superuser = Column(Boolean, default=False)
 
     profile = relationship("Profile", back_populates="user")
-
+    education = relationship("Education", back_populates="user")
+    experience = relationship("Experience", back_populates="user")
+    
     def set_username(self):
         self.username = self.full_name.lower().replace(" ", "_") + str(random.randint(100, 999))
