@@ -9,7 +9,7 @@ from jose import JWTError, jwt
 
 from config import settings
 from db import db_dependency
-from models.user_model import User
+from models.user_models import User
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")

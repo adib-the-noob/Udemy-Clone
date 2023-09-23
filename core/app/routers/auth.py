@@ -19,7 +19,8 @@ from db import db_dependency
 
 from schemas.auth_schemas import Token, UserRequest, UserResponse
 from schemas import profile_schemas
-from models.user_model import User, Profile
+from models.user_models import User
+from models.profile_models import Profile
 
 router = APIRouter(
     prefix="/auth",
