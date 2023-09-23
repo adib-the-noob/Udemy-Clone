@@ -1,5 +1,5 @@
 import datetime
-
+import re
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 
@@ -23,13 +23,11 @@ class Profile(Base, BaseModelMixin):
     # make a property to return the profile picture url
 
     def profile_picture_url(self) -> str | None:
-        return (
-            f"{settings.BASE_URL}/media/profile_pictures/{self.profile_picture}"
-            if self.profile_picture
-            else None
-        )
-
-
+        if self.profile_picture is not None:
+            self.profile_picture = self.profile_picture.replace(" ", "%20")
+            return f"{settings.BASE_URL}/media/profile_pictures/{self.profile_picture}"
+        return None
+    
 class Education(Base, BaseModelMixin):
     __tablename__ = "educations"
 

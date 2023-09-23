@@ -1,3 +1,4 @@
+import re
 from sqlalchemy.sql import func
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime
 
@@ -10,3 +11,4 @@ class BaseModelMixin:
         db.commit()
         db.refresh(self)
         return self
+    

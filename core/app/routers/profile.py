@@ -1,21 +1,17 @@
 from typing import Annotated, Optional
 import os
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, ORJSONResponse
 
-from jose import jwt, JWTError
+
 from config import settings
-
-
 from utils.auth_utils import (
     get_current_user,
 )
 
+
 from db import db_dependency
-from models import (
-    profile_models,
-    user_models
-)
+from models import profile_models, user_models
 from schemas import profile_schemas
 from models.user_models import User
 from models.profile_models import Profile
@@ -34,7 +30,7 @@ def create_profile(
     db: db_dependency,
     # profile : profile_schemas.ProfileRequest,
     address: str = Form(...),
-    role : str = Form(...),
+    role: str = Form(...),
     profile_picture: UploadFile = File(None),
 ):
     if db.query(Profile).filter(Profile.user_id == user.id).first():
@@ -43,17 +39,13 @@ def create_profile(
             detail="Profile already exists",
         )
 
-    file_path = None
     if profile_picture is not None:
         if not os.path.exists("media/profile_pictures"):
             os.makedirs("media/profile_pictures")
         # create a media folder in the root directory
         with open(f"media/profile_pictures/{profile_picture.filename}", "wb") as buffer:
             buffer.write(profile_picture.file.read())
-            file_path = (
-                f"{settings.BASE_URL}/media/profile_pictures/{profile_picture.filename}"
-            )
-    
+
     profile = Profile(
         user_id=user.id,
         address=address,
@@ -62,13 +54,13 @@ def create_profile(
     )
     profile.save(db)
 
-    return JSONResponse(
+    return ORJSONResponse(
         {
             "data": {
                 "id": profile.id,
                 "user_id": profile.user_id,
                 "address": profile.address,
-                "profile_picture": file_path,
+                "profile_picture": profile.profile_picture_url(),
             }
         }
     )
@@ -92,6 +84,7 @@ def get_profile(user: current_user, db: db_dependency):
         },
         status_code=status.HTTP_200_OK,
     )
+
 
 @router.get("/create-edu", response_model=None)
 def create_education(

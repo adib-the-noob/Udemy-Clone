@@ -5,7 +5,13 @@ from datetime import datetime
 #     address: str
 #     phone_number: str
 #     profile_picture: str
-
+class EducationRequest(BaseModel):
+    institution_name: str
+    degree: str
+    graduated: bool
+    starting_date: str
+    ending_date: str
+    
 class ProfileResponse(BaseModel):
     id: int
     user_id: int
