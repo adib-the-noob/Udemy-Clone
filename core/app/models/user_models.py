@@ -1,11 +1,12 @@
 import random
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
+
+from utils.db_utils.BaseModel import BaseModelMixin
 from db import Base  
 from config import settings
 
-class User(Base):
+class User(Base, BaseModelMixin):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
