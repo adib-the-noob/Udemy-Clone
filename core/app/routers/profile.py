@@ -28,10 +28,7 @@ current_user = Annotated[User, Depends(get_current_user)]
 def create_profile(
     user: current_user,
     db: db_dependency,
-    # profile : profile_schemas.ProfileRequest,
-    address: str = Form(...),
-    role: str = Form(...),
-    profile_picture: UploadFile = File(None),
+    profile: profile_schemas.ProfileRequest = Depends(),
 ):
     if db.query(Profile).filter(Profile.user_id == user.id).first():
         raise HTTPException(
@@ -39,18 +36,22 @@ def create_profile(
             detail="Profile already exists",
         )
 
-    if profile_picture is not None:
+    if profile.profile_picture is not None:
         if not os.path.exists("media/profile_pictures"):
             os.makedirs("media/profile_pictures")
         # create a media folder in the root directory
-        with open(f"media/profile_pictures/{profile_picture.filename}", "wb") as buffer:
-            buffer.write(profile_picture.file.read())
+        with open(
+            f"media/profile_pictures/{profile.profile_picture.filename}", "wb"
+        ) as buffer:
+            buffer.write(profile.profile_picture.file.read())
 
     profile = Profile(
         user_id=user.id,
-        address=address,
-        role=role,
-        profile_picture=profile_picture.filename if profile_picture else None,
+        address=profile.address,
+        role=profile.role,
+        profile_picture=profile.profile_picture.filename
+        if profile.profile_picture
+        else None,
     )
     profile.save(db)
 
