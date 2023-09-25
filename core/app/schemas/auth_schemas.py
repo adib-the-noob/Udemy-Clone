@@ -22,3 +22,6 @@ class UserResponse(BaseModel):
     is_active: bool
     is_superuser: bool
 
+class OtpVerificationRequest(BaseModel):
+    otp: int
+    email: str

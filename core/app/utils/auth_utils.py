@@ -24,7 +24,12 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 
 def get_user(email: str, db: db_dependency):
-    user = db.query(User).filter(User.email == email).first()
+    user = db.query(User).filter(User.email == email, User.is_verified==True).first()
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not verified or not found!",
+        )
     return user
 
 
