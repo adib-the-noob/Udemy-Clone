@@ -38,8 +38,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
+    # rest framework
+    'rest_framework',
+    
     # apps
     'users',
+    
+    # third party
+    'django_redis',
 ]
 
 MIDDLEWARE = [
@@ -104,6 +110,17 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# cache
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/1',  # Update with your Redis server details
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
